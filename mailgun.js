@@ -202,7 +202,15 @@ Mailgun.prototype.sendRaw = function(sender, recipients, rawBody) {
 
     // If the user supplied a callback, fire it and set `err` to the
     // status code of the request if it wasn't successful.
-    if (callback) callback(res.statusCode != 201 ? new Error(res.statusCode) : undefined);
+    if (callback) {
+      var body = '';
+      res.on('data', function(chunk) {
+        body += chunk;
+      });
+      res.on('end', function() {
+        callback((res.statusCode != 201 ? new Error(res.statusCode) : undefined), body);
+      });
+    }
   });
 
   // Wrap up the request by sending the message, which contains the
@@ -343,4 +351,3 @@ exports.MAILGUN_TAG = MAILGUN_TAG;
 exports.CAMPAIGN_ID = CAMPAIGN_ID;
 
 module.exports = exports;
-
